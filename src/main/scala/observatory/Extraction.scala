@@ -2,10 +2,19 @@ package observatory
 
 import java.time.LocalDate
 
+import org.apache.spark.sql.{DataFrame, SparkSession}
+import org.apache.spark.sql.types.{DoubleType, IntegerType, StructField, StructType}
+
 /**
   * 1st milestone: data extraction
   */
 object Extraction {
+
+  @transient private lazy val spark = SparkSession
+    .builder()
+    .appName("Observatory")
+    .master("local")
+    .getOrCreate()
 
   /**
     * @param year             Year number
@@ -17,6 +26,17 @@ object Extraction {
     ???
   }
 
+  def loadStations(stationsFile: String): DataFrame = {
+    val path = getClass.getResource(stationsFile).toString
+    val schema = StructType(Seq(
+      StructField("stn", IntegerType, nullable = true),
+      StructField("wban", IntegerType, nullable = true),
+      StructField("latitude", DoubleType, nullable = true),
+      StructField("longitude", DoubleType, nullable = true)
+    ))
+    spark.read.schema(schema).csv(path)
+  }
+
   /**
     * @param records A sequence containing triplets (date, location, temperature)
     * @return A sequence containing, for each location, the average temperature over the year.
@@ -26,3 +46,5 @@ object Extraction {
   }
 
 }
+
+
